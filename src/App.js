@@ -6,8 +6,8 @@ import MapWithFeatureLayer from "./components/customFeatureLayer/MapWithCustomFe
 function App() {
   return (
     <div className="App">
-      {/* <Barebone /> */}
-      <MapWithFeatureLayer />
+      <Barebone />
+      {/* <MapWithFeatureLayer /> */}
     </div>
   );
 }

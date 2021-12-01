@@ -7,12 +7,19 @@ setDefaultOptions({
 
 export default function Barebone(props) {
   const mapRef = useRef(null);
+  const downloadBtnRef = useRef(null);
   const [map, setMap] = useState(null);
   const [mapView, setMapView] = useState(null);
 
   useEffect(() => {
-    loadModules(["esri/Map", "esri/views/MapView", "esri/Graphic"])
-      .then(async ([Map, MapView, Graphic]) => {
+    loadModules([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/widgets/Search",
+      "esri/widgets/Expand",
+      "esri/widgets/BasemapGallery",
+    ])
+      .then(async ([Map, MapView, Search, Expand, BasemapGallery]) => {
         const map = new Map({
           basemap: "topo",
         });
@@ -22,53 +29,32 @@ export default function Barebone(props) {
           // center: [-118.805, 34.027], // Longitude, latitude
           // zoom: 13, // Zoom level
           container: mapRef.current, // Div element
-        });
-
-        const polyline = {
-          type: "polyline",
-          paths: [
-            [-118.821527826096, 34.0139576938577], //Longitude, latitude
-            [-118.814893761649, 34.0080602407843], //Longitude, latitude
-            [-118.808878330345, 34.0016642996246], //Longitude, latitude
-          ],
-        };
-
-        const lineSymbol = {
-          // color: [226, 119, 40],
-          type: "simple-line",
-          color: [0, 255, 239],
-          // color: [226, 119, 40],
-          width: 4,
-        };
-
-        const polylineGraphic = new Graphic({
-          geometry: polyline,
-          symbol: lineSymbol,
-          attributes: {},
-          popupTemplate: {
-            title: "some info could be display here",
-            content: `the path is drawn on <b>{date}</b>`,
+          ui: {
+            components: ["attribution"], // remove all default UI, ie: zoom in / zoom out btns, except "attribution", [] means remove everything
           },
         });
 
-        const pg = new Graphic({
-          geometry: {
-            type: "point",
-            longitude: -118.805,
-            latitude: 34.027,
-          },
-          symbol: {
-            type: "text",
-            color: "$7A003C",
-            text: "\ue61d",
-            font: {
-              size: 36,
-              family: "CalciteWebCoreIcons",
-            },
-          },
+        const basemapGallery = new BasemapGallery({
+          view: mapView,
+          container: document.createElement("div"),
         });
 
-        mapView.graphics.add(pg);
+        // Create an Expand instance and set the content
+        // property to the DOM node of the basemap gallery widget
+        // Use an Esri icon font to represent the content inside
+        // of the Expand widget
+
+        const bgExpand = new Expand({
+          view: mapView,
+          content: basemapGallery,
+        });
+
+        const searchComponent = new Search({ view: mapView });
+
+        mapView.ui.add([searchComponent, bgExpand], "top-right");
+        mapView.ui.add(downloadBtnRef.current, "top-left");
+        // mapView.ui.add(bgExpand, "top-right");
+
         setMap(map);
         setMapView(mapView);
 
@@ -87,9 +73,25 @@ export default function Barebone(props) {
     }
   }, [mapView]);
 
+  const downloadFunction = () => {
+    alert("TBD");
+  };
+
   return (
     <div>
-      <div ref={mapRef} style={{ height: "100vh" }}></div>
+      <div ref={mapRef} style={{ height: "100vh" }}>
+        <div
+          // disabled={true} // note: don't bother to disabled this component, ie: replace div as button, cause it is simply not working, on version 4.21, button is disabled but clicking still trigger the function
+          ref={downloadBtnRef}
+          className="esri-widget--button"
+          title="download something"
+          onClick={downloadFunction}
+        >
+          {/* esri icon font list
+          https://developers.arcgis.com/javascript/latest/esri-icon-font/ */}
+          <span className="esri-icon-download"></span>
+        </div>
+      </div>
     </div>
   );
 }
